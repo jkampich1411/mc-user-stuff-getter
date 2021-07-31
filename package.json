@@ -1,0 +1,17 @@
+{
+  "name": "whitelistuuid",
+  "version": "1.0.0",
+  "description": "Get the UUID for future-events Whitelist Stuff",
+  "main": "main.js",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "https": "^1.0.0",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node main.js"
+  },
+  "author": "jakobkampichler",
+  "license": "ISC"
+}

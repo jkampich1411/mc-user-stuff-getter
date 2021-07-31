@@ -41,7 +41,7 @@ function fetchSkin(id, playername) {
         let buff = await res.buffer();
 
         fs.writeFile(`${plname}.png`, buff, () => {
-            console.log('dl finished');
+            console.log('dl finished, test');
         });
     }
     dlskin(skurl, playername)

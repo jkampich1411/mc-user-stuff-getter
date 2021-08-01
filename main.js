@@ -1,5 +1,5 @@
 /**
- * @author Jakob Kampichler <jakobkampichler+dev@gmail.coms>
+ * @author Jakob Kampichler <jakobkampichler+dev@gmail.com>
  * @file This script uses some APIs to get more information about a Minecraft user. It is developed for future-events, but if you know how to modify it, you can use it for yourself, that is why .
  * @copyright JakobKampichler Dev (2021) - FutureEvents
  * other meta:
@@ -10,7 +10,18 @@ const fs = require('fs');
 const https = require('https');
 const nodefetch = require('node-fetch');
 const sqlcon = require('mysql');
-var debug = 2;
+const exp = require('express');
+const web = exp();
+const app = require('http').createServer(web)
+
+var port = 3000;
+var debug = 1;
+
+// Webserver to display Skin
+app.listen(port, () => {
+    console.log(`Server running on port: ${port}`)
+});
+web.use(exp.static(__dirname + '/skintemp'));
 
 // MySQL conn (insert into Whitelist)
 function inpSQLWL(uuid, uname) {
@@ -74,13 +85,11 @@ function fetchUUID(name) {
 // Get the Users Skin
 function fetchSkin(id, playername) {
     let skurl = `https://crafthead.net/skin/${id}`;
-    let skargs = `/skin/${id}`;
-
     async function dlskin(url, plname) {
         let res = await nodefetch(url);
         let buff = await res.buffer();
 
-        fs.writeFile(`${plname}.png`, buff, () => {
+        fs.writeFile(`skintemp/${plname}.png`, buff, () => {
             console.log('dl finished');
         });
     }
@@ -106,12 +115,14 @@ function prepUUID(str, usrname) {
 
 function cb(nodash, dash, usr) {
     fetchSkin(nodash, usr)
+/*
     if (debug === 0) return;
     if (debug === 1) inpSQLWL(dash, usr);
     if (debug === 2) delSQLWL(dash, usr);
+*/
     console.log(nodash);
     console.log(dash);
     console.log(usr);
 }
 
-return fetchUUID("thejakobcraft")
+return fetchUUID("thejakobcraft2")

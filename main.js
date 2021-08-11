@@ -27,7 +27,7 @@ function deblog(text, lvl) {
 }
 
 const fs = require('fs');
-const https = require('https');
+const https =  require('https');
 const nodefetch = require('node-fetch');
 const sqlcon = require('mysql');
 const exp = require('express');
@@ -95,26 +95,6 @@ checkFiles()
 
 var port = process.env.PORT || 8080;
 
-// Use this script in other scripts!
-module.exports = {
-    fetch: function(mcPN) {
-        fetchUUID(mcPN);
-    },
-    startServer: function() {
-        // Webserver to display Skin
-        app.listen(port, () => {
-            console.log(`Server running on port: ${port}`)
-        });
-        web.use('utils/skin', exp.static(__dirname + '/skintemp/html'));        
-    },
-    moduleInfo: function() {
-        return deblog(moduleDescription, 1)
-    },
-    secretModuleInfo: function(){
-        return deblog(advancedModuleDescription, 1)
-    }
-}
-
 // Get the UUID of the User to do other stuff with it.
 function fetchUUID(name) {
     let opts = {
@@ -156,7 +136,42 @@ function fetchSkin(playername) {
     });
 }
 
-// Prepare UUID to use in MyWl
+// Get a users names
+const fetchNames = (uuid) => {
+    let opts = {
+        hostname: 'api.ashcon.app',
+        port: 443,
+        path: `/mojang/v2/user/${uuid}`,
+        method: 'GET'
+    }
+    
+    let req = https.request(opts, res => {
+        console.log(`statuscode: ${res.statusCode}`);
+
+        let datachunks = [];
+        res.on('data', d => {
+            datachunks.push(d);
+        }).on('end', function() {
+            let dat = Buffer.concat(datachunks);
+            let data = JSON.parse(dat);
+            let playerNames = [];
+
+            for(let i=0; i < data.username_history.length; i++) {
+                console.log(data.username_history[i].username);
+                playerNames.push(data.username_history[i].username);
+            }
+
+        });
+    });
+
+    req.on('error', err => {
+        console.error(err);
+    });
+
+    req.end();
+}
+
+// Prepare UUID
 function prepUUID(str, usrname) {
     let uid = str;
     let localdata = [8, 12, 16, 20, "-"];
@@ -174,12 +189,33 @@ function prepUUID(str, usrname) {
 
 
 function cb(nodash, dash, usr) {
-    fetchSkin(usr)
+    createSkinTemplate();
+    fetchSkin(usr);
     console.log(nodash);
     console.log(dash);
     console.log(usr);
 }
 
-process.on('SIGTERM', () => {
-    app.close();
-});
+var stuff = function (username, UUID, skinUrl, playerNames) {
+    const response = [];
+
+    response[0] = username;
+    response[1] = UUID;
+    response[2] = skinUrl;
+    response[3] = playerNames;
+
+    return response;
+}
+
+// Use this script in other scripts!
+module.exports.fetch = (mcPN) => {
+    return fetchUUID(mcPN);
+}
+module.exports.moduleInfo = () => {
+    return deblog(moduleDescription, 1);
+}
+module.exports.secretModuleInfo = () => {
+    return deblog(advancedModuleDescription, 1);
+}
+
+return checkFiles

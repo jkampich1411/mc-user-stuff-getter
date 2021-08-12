@@ -48,7 +48,7 @@ function checkFiles() {
                 res.pipe(dl);
 
                 res.on('end', () => {
-                    createSkinTemplate();
+                    loadSkinTemplate();
                 });
             });
         }
@@ -192,10 +192,6 @@ var getStuff = (playername, webPrefix, cb) => {
         });
     });
 }
-
-getStuff("thejakobcraft", "test", function (callback) {
-    console.log(callback.join(', '))
-});
 
 /* Just a little Error Processor */
 process.on('SIGTERM', () => {

@@ -80,7 +80,6 @@ function fetchUUID(name, cb) {
     }
     
     let req = https.request(opts, res => {
-        console.log(`statuscode: ${res.statusCode}`);
 
         let datachunks = [];
         res.on('data', d => {
@@ -120,8 +119,6 @@ function fetchSkin(playername, urlPrefix, cb) {
 
     fs.writeFile(outputFileString, data, err => {
         if (err) throw err;
-
-        console.log(`File saved to \'${outputFileString}\'`);
     });
 
     let link = `${urlPrefix}/${playername}.html`;
@@ -150,7 +147,6 @@ function fetchNames(uuid, cb) {
 
             /* Add past player names into an array */
             for(let i=0; i < data.username_history.length; i++) {
-                console.log(data.username_history[i].username);
                 playerNames.push(data.username_history[i].username);
             }
 

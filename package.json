@@ -4,19 +4,24 @@
   "description": "Get stuff from a Minecraft user from apis!",
   "main": "main.js",
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
     "fs": "0.0.1-security",
     "handlebars": "^4.7.7",
-    "http": "0.0.1-security",
     "https": "^1.0.0",
-    "mysql": "^2.18.1",
-    "node-fetch": "^2.6.1",
-    "path": "^0.12.7"
+    "node-fetch": "^2.6.1"
   },
-  "scripts": {
-    "test": "node main.js"
+  "bugs": {
+    "url": "https://github.com/jkampich1411/mc-user-stuff-getter/issues",
+    "email": "jakobkampichler+dev@gmail.com"
   },
-  "author": "jakobkampichler",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jkampich1411/mc-user-stuff-getter"
+  },
+  "homepage": "https://thejakobcraft.xyz",
+  "author": "Jakob Kampichler aka. theJakobcraft <jakobkampichler+dev@gmail.com> (https://thejakobcraft.xyz)",
+  "funding": {
+    "type": "buymeacoffee",
+    "url": "https://bio.link/jkdev"
+  },
+  "license": "MIT"
 }

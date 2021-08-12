@@ -24,11 +24,8 @@ function deblog(text, lvl) {
 // ===// [Custom Logger] \\===
 
 const fs = require('fs');
-const https =  require('https');
+const https = require('https');
 const nodefetch = require('node-fetch');
-const exp = require('express');
-const web = exp();
-const app = require('http').createServer(web)
 const hdb = require('handlebars');
 
 var skin;
@@ -70,10 +67,6 @@ function loadSkinTemplate() {
 checkFiles()
 
 // ===// [Check if critical files exist!] \\===
-
-//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
-//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
-//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
 
 // Get the UUID of the User to do other stuff with it.
 function fetchUUID(name, cb) {

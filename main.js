@@ -1,15 +1,11 @@
 /**
  * @author Jakob Kampichler <jakobkampichler+dev@gmail.com>
- * @file This script uses some APIs to get more information about a Minecraft user. It is developed for future-events, but if you know how to modify it, you can use it for yourself.
+ * @file This script uses some APIs to get more information about a Minecraft user.
  * @copyright JakobKampichler Dev (2021) - FutureEvents
- * other meta:
  * @version 0.1.0
 */
 
-const moduleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n";
-const advancedModuleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\n(Yes I couldn't think of a better name.)\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n\n(c) 2021 - theJakobcraft\n";
-
-// CustomLogger
+// === [Custom Logger] ===
 function deblog(text, lvl) {
     if(!(lvl)) lvl===1;
     if(lvl ===1) {
@@ -25,44 +21,30 @@ function deblog(text, lvl) {
         console.log(`CRITICAL: ${text}`);
     }
 }
+// ===// [Custom Logger] \\===
 
 const fs = require('fs');
 const https =  require('https');
 const nodefetch = require('node-fetch');
-const sqlcon = require('mysql');
 const exp = require('express');
 const web = exp();
 const app = require('http').createServer(web)
 const hdb = require('handlebars');
-const e = require('express');
-const path = require('path');
 
 var skin;
 var sknTempl;
+var errorCausedOn = "";
 
-require('dotenv').config()
-
-// Check if critical files exist!
+// === [Check if critical files exist!] ===
 function checkFiles() {
     
     try {
+        /* Directory Check */
         if (!(fs.existsSync('./skintemp'))) fs.mkdirSync('./skintemp');
         if (!(fs.existsSync('./skintemp/html'))) fs.mkdirSync('./skintemp/html');
         if (!(fs.existsSync('./templ'))) fs.mkdirSync('./templ');
-    } catch (e) { throw e; }
 
-    try {
-        if (!(fs.existsSync('./templ/.env'))) {
-            let dl = fs.createWriteStream("./templ/.env");
-            let req = https.get("https://raw.githubusercontent.com/jkampich1411/mc-user-stuff-getter/templ/env", async (res) => {
-                res.pipe(dl);
-
-                res.on('end', () => {
-                    copyEnv();
-                })
-            });
-        };
-
+        /* Skin Webpage Template Check */
         if (!(fs.existsSync("./templ/showskin.html"))) {
             let dl = fs.createWriteStream("./templ/showskin.html")
             let req = https.get("https://raw.githubusercontent.com/jkampich1411/mc-user-stuff-getter/templ/showskin.html", async (res) => {
@@ -73,30 +55,30 @@ function checkFiles() {
                 });
             });
         }
-    } catch (e) { throw e; }
-}
-function copyEnv() {
-    try {
-        if(!fs.existsSync('./.env')) {
-            let envTempl = fs.readFileSync('templ/.env', 'utf-8');
-            fs.writeFileSync('./.env', envTempl, err => {
-                if (err) throw err;
-            });
-        }
-    } catch (e) { throw e; }
+    } catch (e) {
+        /* Error Log just because */
+        errorCausedOn = "loadingCriticalFiles";
+        process.kill(process.pid, 'SIGTERM');
+    }
 }
 
-function createSkinTemplate() {
+function loadSkinTemplate() {
     sknTempl = fs.readFileSync('templ/showskin.html', 'utf-8');
     skin = hdb.compile(sknTempl);
 }
 
 checkFiles()
 
-var port = process.env.PORT || 8080;
+// ===// [Check if critical files exist!] \\===
+
+//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
+//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
+//  ACTUAL CODE STARTS FROM HERE! THIS IS JUST IN THE DEV BUILD!
 
 // Get the UUID of the User to do other stuff with it.
-function fetchUUID(name) {
+function fetchUUID(name, cb) {
+    response = [];
+
     let opts = {
         hostname: 'crafthead.net',
         port: 443,
@@ -113,19 +95,33 @@ function fetchUUID(name) {
         }).on('end', function() {
             let dat = Buffer.concat(datachunks);
             let data = JSON.parse(dat);
-            prepUUID(data.id, name)
+            let uid = data.id;
+            let localdata = [8, 12, 16, 20, "-"];
+            var idRes = [];
+
+            /* Convert the UUID into a DASHED Format */
+            if (!(uid)) return;
+            else {
+                let uuid1 = `${uid.slice(0,localdata[0])}${localdata[4]}`;
+                let uuid2 = `${uid.slice(localdata[0],localdata[1])}${localdata[4]}`;
+                let uuid3 = `${uid.slice(localdata[1],localdata[2])}${localdata[4]}`;
+                let uuid4 = `${uid.slice(localdata[2],localdata[3])}${localdata[4]}${uid.slice(localdata[3])}`;
+                var uuid = `${uuid1}${uuid2}${uuid3}${uuid4}`
+
+                idRes[0] = uid;
+                idRes[1] = uuid;
+
+            }
+            return cb(idRes);
         });
     });
-
-    req.on('error', err => {
-        console.error(err);
-    });
+    req.on('error', err => console.error(err));
 
     req.end();
 }
 
 // Get a users skin in a HTML file
-function fetchSkin(playername) {
+function fetchSkin(playername, urlPrefix, cb) {
     let data = skin({uname: playername});
     let outputFileString = `skintemp/html/${playername}.html`;
 
@@ -134,10 +130,13 @@ function fetchSkin(playername) {
 
         console.log(`File saved to \'${outputFileString}\'`);
     });
+
+    let link = `${urlPrefix}/${playername}.html`;
+    return cb(link);
 }
 
 // Get a users names
-const fetchNames = (uuid) => {
+function fetchNames(uuid, cb) {
     let opts = {
         hostname: 'api.ashcon.app',
         port: 443,
@@ -154,68 +153,77 @@ const fetchNames = (uuid) => {
         }).on('end', function() {
             let dat = Buffer.concat(datachunks);
             let data = JSON.parse(dat);
-            let playerNames = [];
+            var playerNames = [];
 
+            /* Add past player names into an array */
             for(let i=0; i < data.username_history.length; i++) {
                 console.log(data.username_history[i].username);
                 playerNames.push(data.username_history[i].username);
             }
 
+            return cb(playerNames);
         });
     });
 
-    req.on('error', err => {
-        console.error(err);
-    });
+    req.on('error', err => console.error(err));
 
     req.end();
 }
 
-// Prepare UUID
-function prepUUID(str, usrname) {
-    let uid = str;
-    let localdata = [8, 12, 16, 20, "-"];
+// Function to do stuff
+var getStuff = (playername, webPrefix, cb) => {
+    loadSkinTemplate();
+    var response = [];
 
-    if (!(uid)) return;
-    else {
-        let uuid1 = `${uid.slice(0,localdata[0])}${localdata[4]}`;
-        let uuid2 = `${uid.slice(localdata[0],localdata[1])}${localdata[4]}`;
-        let uuid3 = `${uid.slice(localdata[1],localdata[2])}${localdata[4]}`;
-        let uuid4 = `${uid.slice(localdata[2],localdata[3])}${localdata[4]}${uid.slice(localdata[3])}`;
-        let uuid = `${uuid1}${uuid2}${uuid3}${uuid4}`
-        cb(uid, uuid, usrname)
+    var playerUUIDs = [];
+    var skinUrl = "";
+    var pastUserNames = [];
+
+    var playerIDs = fetchUUID(playername, (IDs) => {
+        playerUUIDs[0] = IDs[0]
+        playerUUIDs[1] = IDs[1]
+
+        var skin = fetchSkin(playername, webPrefix, (URL) => {
+            skinUrl = URL;
+    
+            var names = fetchNames(playerUUIDs[0], (NamesArray) => {
+                for(let i = 0; i<NamesArray.length; i++) {
+                    pastUserNames.push(NamesArray[i]);
+                }
+
+                response[0] = playerUUIDs;
+                response[1] = skinUrl;
+                response[2] = pastUserNames;
+                return cb(response);
+            });
+        });
+    });
+}
+
+getStuff("thejakobcraft", "test", function (callback) {
+    console.log(callback.join(', '))
+});
+
+/* Just a little Error Processor */
+process.on('SIGTERM', () => {
+    if(errorCausedOn === "") {
+        process.exitCode = 0;
+        process.kill(process.pid)
+    } else if(errorCausedOn === "loadingCriticalFiles") {
+        deblog("An error occoured while trying to download some files.\nPlease check your Internet connection and\nalso if you have got enough space on your drive left!", 4);
+        process.exitCode = 5;
     }
-}
-
-
-function cb(nodash, dash, usr) {
-    createSkinTemplate();
-    fetchSkin(usr);
-    console.log(nodash);
-    console.log(dash);
-    console.log(usr);
-}
-
-var stuff = function (username, UUID, skinUrl, playerNames) {
-    const response = [];
-
-    response[0] = username;
-    response[1] = UUID;
-    response[2] = skinUrl;
-    response[3] = playerNames;
-
-    return response;
-}
+});
 
 // Use this script in other scripts!
-module.exports.fetch = (mcPN) => {
-    return fetchUUID(mcPN);
+module.exports.fetch = (mcPN, urlPrefix, cb) => {
+    return getStuff(mcPN, urlPrefix, cb);
 }
 module.exports.moduleInfo = () => {
+    const moduleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n";
     return deblog(moduleDescription, 1);
 }
 module.exports.secretModuleInfo = () => {
+    const advancedModuleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\n(Yes I couldn't think of a better name.)\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n\n(c) 2021 - theJakobcraft\n";
     return deblog(advancedModuleDescription, 1);
 }
-
-return checkFiles

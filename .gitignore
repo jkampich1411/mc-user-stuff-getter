@@ -2,4 +2,3 @@ node_modules/
 skintemp/
 templ/
 package-lock.json
-.env

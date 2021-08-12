@@ -1,4 +1,5 @@
 node_modules/
 skintemp/
-templ/*
+templ/
+.github/
 package-lock.json

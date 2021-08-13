@@ -5,6 +5,8 @@
  * @version 0.1.0
 */
 
+var nodeArgs = process.argv.slice(2);
+
 // === [Custom Logger] ===
 function deblog(text, lvl) {
     if(!(lvl)) lvl===1;
@@ -23,14 +25,36 @@ function deblog(text, lvl) {
 }
 // ===// [Custom Logger] \\===
 
+// === [Error Processor] ===
+var errorCausedOn = "";
+
+process.on('SIGTERM', () => {
+    if(errorCausedOn === "") {
+        process.exitCode = 0;
+        process.kill(process.pid);
+    } else if(errorCausedOn === "loadingCriticalFiles") {
+        deblog("An error occoured while trying to download some files.\nPlease check your Internet connection and\nalso if you have got enough space on your drive left!", 4);
+        process.exitCode = 5;
+        process.kill(process.pid);
+    }
+});
+// ===// [Error Processor] \\===
+
+require('dotenv').config()
+
 const fs = require('fs');
 const https = require('https');
 const nodefetch = require('node-fetch');
 const hdb = require('handlebars');
+const exp = require('express');
+const web = exp();
+const app = require('http').createServer(web);
+const proc = require('process');
 
 var skin;
 var sknTempl;
-var errorCausedOn = "";
+var port = process.env.PORT || 8080;
+var os = proc.platform;
 
 // === [Check if critical files exist!] ===
 function checkFiles() {
@@ -52,26 +76,51 @@ function checkFiles() {
                 });
             });
         }
+        /* .env Template Check */
+        if (!(fs.existsSync("./templ/.env"))) {
+            let dl = fs.createWriteStream("./templ/.env")
+            let req = https.get("https://raw.githubusercontent.com/jkampich1411/mc-user-stuff-getter/templ/env", async (res) => {
+                res.pipe(dl);
+
+                res.on('end', () => {
+                    copyEnv();
+                });
+            });
+        }
     } catch (e) {
         /* Error Log just because */
         errorCausedOn = "loadingCriticalFiles";
         process.kill(process.pid, 'SIGTERM');
     }
 }
-
+function copyEnv() {
+    try {
+        if(!fs.existsSync('./.env')) {
+            let envTempl = fs.readFileSync('./templ/.env', 'utf-8');
+            fs.writeFileSync('./.env', envTempl, err => {
+                if (err) throw err;
+            });
+        }
+    } catch (e) { throw e; }
+}
 function loadSkinTemplate() {
     sknTempl = fs.readFileSync('templ/showskin.html', 'utf-8');
     skin = hdb.compile(sknTempl);
 }
-
-checkFiles()
-
 // ===// [Check if critical files exist!] \\===
+
+// === [Web Server] ===
+function startWebServer() {
+    app.listen(port, () => {
+        deblog(`Webserver running on ${port}!`, 1);
+    });
+
+    web.use('/skin', exp.static(__dirname + '/skintemp/html'));
+}
+// ===// [Web Server] \\===
 
 // Get the UUID of the User to do other stuff with it.
 function fetchUUID(name, cb) {
-    response = [];
-
     let opts = {
         hostname: 'crafthead.net',
         port: 443,
@@ -135,7 +184,6 @@ function fetchNames(uuid, cb) {
     }
     
     let req = https.request(opts, res => {
-        console.log(`statuscode: ${res.statusCode}`);
 
         let datachunks = [];
         res.on('data', d => {
@@ -189,16 +237,37 @@ var getStuff = (playername, webPrefix, cb) => {
     });
 }
 
-/* Just a little Error Processor */
-process.on('SIGTERM', () => {
-    if(errorCausedOn === "") {
-        process.exitCode = 0;
-        process.kill(process.pid)
-    } else if(errorCausedOn === "loadingCriticalFiles") {
-        deblog("An error occoured while trying to download some files.\nPlease check your Internet connection and\nalso if you have got enough space on your drive left!", 4);
-        process.exitCode = 5;
-    }
-});
+switch (nodeArgs[0].toLowerCase()) {
+    case 'webserver':
+        if (os === "win32" || os === "linux") {
+            deblog(`Starting Webserver on ${port};`);
+            startWebServer();
+            break;
+        } else break;
+
+    case 'fetch':
+        if (os === "win32" || os === "linux") {
+            if (nodeArgs[1]) {
+                getStuff(nodeArgs[1], nodeArgs[2], (call) => {
+                    console.log(`${call.join(', ')}`);
+                });
+            }
+            break;
+        } else break;
+
+    case 'info': 
+        const moduleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===";
+        deblog(moduleDescription, 1);
+        break;
+
+    case 'noinfo':
+        const advancedModuleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\n(Yes I couldn't think of a better name.)\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n\n(c) 2021 - theJakobcraft";
+        deblog(advancedModuleDescription, 1);
+        break;
+
+    default:
+        checkFiles();
+}
 
 // Use this script in other scripts!
 module.exports.fetch = (mcPN, urlPrefix, cb) => {

@@ -3,3 +3,4 @@ skintemp/
 templ/
 .github/
 package-lock.json
+.env

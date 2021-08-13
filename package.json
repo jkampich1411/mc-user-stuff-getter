@@ -1,11 +1,14 @@
 {
-  "name": "mc-user-stuff-getter",
+  "name": "mcplayerinfo",
   "version": "1.0.0",
-  "description": "Get stuff from a Minecraft user from apis!",
+  "description": "Get stuff from a Minecraft user from APIs!",
   "main": "main.js",
   "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
     "fs": "0.0.1-security",
     "handlebars": "^4.7.7",
+    "http": "0.0.1-security",
     "https": "^1.0.0",
     "node-fetch": "^2.6.1"
   },

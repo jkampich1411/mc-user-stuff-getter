@@ -4,3 +4,5 @@ templ/
 .github/
 package-lock.json
 .env
+cfg.json
+MCInfo.js

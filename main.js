@@ -46,9 +46,13 @@ const fs = require('fs');
 const https = require('https');
 const nodefetch = require('node-fetch');
 const hdb = require('handlebars');
+const config = JSON.parse(fs.readFileSync('./cfg.json', 'utf-8'));
 const exp = require('express');
 const web = exp();
-const app = require('http').createServer(web);
+const app = https.createServer({
+    key: fs.readFileSync(config.privatekey, 'utf-8'),
+    cert: fs.readFileSync(config.publickey, 'utf-8')
+});
 const proc = require('process');
 
 var skin;

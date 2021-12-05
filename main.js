@@ -9,7 +9,7 @@ var nodeArgs = process.argv.slice(2);
 
 // === [Custom Logger] ===
 function deblog(text, lvl) {
-    if(!(lvl)) lvl===1;
+    if(!(lvl)) lvl=1;
     if(lvl ===1) {
         console.log(`INFO: ${text}`);
     }
@@ -40,7 +40,7 @@ process.on('SIGTERM', () => {
 });
 // ===// [Error Processor] \\===
 
-require('dotenv').config()
+require('dotenv').config();
 
 const fs = require('fs');
 const https = require('https');
@@ -49,9 +49,15 @@ const hdb = require('handlebars');
 const config = JSON.parse(fs.readFileSync('./cfg.json', 'utf-8'));
 const exp = require('express');
 const web = exp();
+
+var getWebKeys = (_call, privatekey = null, publickey = null) => {
+    if(privatekey) if (fs.existsSync(privatekey)) return _call(privatekey);
+    if(publickey) if (fs.existsSync(publickey)) return _call(publickey);
+};
+
 const app = https.createServer({
-    key: fs.readFileSync(config.privatekey, 'utf-8'),
-    cert: fs.readFileSync(config.publickey, 'utf-8')
+    key: getWebKeys((key) => fs.readFileSync(key, 'utf-8'), config.privatekey),
+    cert: getWebKeys((key) => fs.readFileSync(key, 'utf-8'), config.publickey)
 });
 const proc = require('process');
 
@@ -71,7 +77,7 @@ function checkFiles() {
 
         /* Skin Webpage Template Check */
         if (!(fs.existsSync("./templ/showskin.html"))) {
-            let dl = fs.createWriteStream("./templ/showskin.html")
+            let dl = fs.createWriteStream("./templ/showskin.html");
             let req = https.get("https://raw.githubusercontent.com/jkampich1411/mc-user-stuff-getter/templ/showskin.html", async (res) => {
                 res.pipe(dl);
 
@@ -82,7 +88,7 @@ function checkFiles() {
         }
         /* .env Template Check */
         if (!(fs.existsSync("./templ/.env"))) {
-            let dl = fs.createWriteStream("./templ/.env")
+            let dl = fs.createWriteStream("./templ/.env");
             let req = https.get("https://raw.githubusercontent.com/jkampich1411/mc-user-stuff-getter/templ/env", async (res) => {
                 res.pipe(dl);
 
@@ -130,7 +136,7 @@ function fetchUUID(name, cb) {
         port: 443,
         path: `/profile/${name}`,
         method: 'GET'
-    }
+    };
     
     let req = https.request(opts, res => {
 
@@ -151,7 +157,7 @@ function fetchUUID(name, cb) {
                 let uuid2 = `${uid.slice(localdata[0],localdata[1])}${localdata[4]}`;
                 let uuid3 = `${uid.slice(localdata[1],localdata[2])}${localdata[4]}`;
                 let uuid4 = `${uid.slice(localdata[2],localdata[3])}${localdata[4]}${uid.slice(localdata[3])}`;
-                var uuid = `${uuid1}${uuid2}${uuid3}${uuid4}`
+                var uuid = `${uuid1}${uuid2}${uuid3}${uuid4}`;
 
                 idRes[0] = uid;
                 idRes[1] = uuid;
@@ -185,7 +191,7 @@ function fetchNames(uuid, cb) {
         port: 443,
         path: `/mojang/v2/user/${uuid}`,
         method: 'GET'
-    }
+    };
     
     let req = https.request(opts, res => {
 
@@ -221,8 +227,8 @@ var getStuff = (playername, webPrefix, cb) => {
     var pastUserNames = [];
 
     var playerIDs = fetchUUID(playername, (IDs) => {
-        playerUUIDs[0] = IDs[0]
-        playerUUIDs[1] = IDs[1]
+        playerUUIDs[0] = IDs[0];
+        playerUUIDs[1] = IDs[1];
 
         var skin = fetchSkin(playername, webPrefix, (URL) => {
             skinUrl = URL;
@@ -239,7 +245,7 @@ var getStuff = (playername, webPrefix, cb) => {
             });
         });
     });
-}
+};
 
 switch (nodeArgs[0].toLowerCase()) {
     case 'webserver':
@@ -276,12 +282,12 @@ switch (nodeArgs[0].toLowerCase()) {
 // Use this script in other scripts!
 module.exports.fetch = (mcPN, urlPrefix, cb) => {
     return getStuff(mcPN, urlPrefix, cb);
-}
+};
 module.exports.moduleInfo = () => {
     const moduleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n";
     return deblog(moduleDescription, 1);
-}
+};
 module.exports.secretModuleInfo = () => {
     const advancedModuleDescription = "===[ MC User Stuff Getter ]===\nThank you for using \'MC User Stuff Getter\'!\n(Yes I couldn't think of a better name.)\nGitHub Repository: \'jkampich1411/mc-user-stuff-getter\'\n===[ MC User Stuff Getter ]===\n\n(c) 2021 - theJakobcraft\n";
     return deblog(advancedModuleDescription, 1);
-}
+};
